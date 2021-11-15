@@ -15,8 +15,6 @@ int main() {
     _setmode(_fileno(stdin), _O_U16TEXT);
     _setmode(_fileno(stdout), _O_U16TEXT);
 
-    wcout << sizeof(MainEntry) << endl;
-    wcout << sizeof(SubEntry) << endl;
     BYTE sector[512];
     BootSector bootSector;
     if (readSector(L"\\\\.\\H:", 0, sector)) {
@@ -57,8 +55,9 @@ int main() {
     vector<SubEntry> subEntryList;
     // read RDET
     for (int i = 1;; i++) { // handle each sector start in RDET
-        readSector(L"\\\\.\\H:", first_RDET * 512 * i, sector);
+        readSector(L"\\\\.\\H:", first_RDET * 512 +  512 * (i - 1), sector);
         if (sector[0] == 0) {
+            wcout << L"Kết thúc" << endl;
             break;
         }
         
@@ -87,7 +86,9 @@ int main() {
                 else {
                     setInfo(component, mainEntry, subEntryList, fat1);
                 }
+                subEntryList.clear();
                 printInfo(component);
+                wcout << endl << endl << endl;
             }
             else {
                 subEntryList.clear();

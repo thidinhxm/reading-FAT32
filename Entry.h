@@ -4,7 +4,7 @@
 
 #define LENGTH_FILE_NAME_1 10
 #define LENGTH_FILE_NAME_2 12
-#define LENGTH_FILE_NAME_3 14
+#define LENGTH_FILE_NAME_3 4
  
 struct MainEntry {
     uint8_t name[8];

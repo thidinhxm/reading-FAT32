@@ -21,14 +21,18 @@ void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat
 
     component.first_cluster = convertBytesToInt(mainEntry.first_cluster_high, 2) * 100 + convertBytesToInt(mainEntry.first_cluster_low, 2); 
     
-    for (int i = component.first_cluster; i < fat1.size(); i++) {
-        uint32_t index_cluster = convertBytesToInt(fat1[i], 4);
+    // first_cluster = 0 ==> no cluster
+    if (component.first_cluster != 0) { 
+        component.clusters.push_back(component.first_cluster);
+
+        for (int i = component.first_cluster; i < fat1.size(); i++) {
+            uint32_t index_cluster = convertBytesToInt(fat1[i], 4);
         if (index_cluster == 0x0fffffff) {
-            component.clusters.push_back(i);
             break;
         }
         else {
             component.clusters.push_back(index_cluster);
+            }
         }
     }
     component.size = convertBytesToInt(mainEntry.size, 4);
@@ -51,14 +55,19 @@ void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubE
     }
 
     component.first_cluster = convertBytesToInt(mainEntry.first_cluster_high, 2) * 100 + convertBytesToInt(mainEntry.first_cluster_low, 2); 
-    for (int i = component.first_cluster; i < fat1.size(); i++) {
-        uint32_t index_cluster = convertBytesToInt(fat1[i], 4);
+    
+    // first_cluster = 0 ==> no cluster
+    if (component.first_cluster != 0) { 
+        component.clusters.push_back(component.first_cluster);
+
+        for (int i = component.first_cluster; i < fat1.size(); i++) {
+            uint32_t index_cluster = convertBytesToInt(fat1[i], 4);
         if (index_cluster == 0x0fffffff) {
-            component.clusters.push_back(i);
             break;
         }
         else {
             component.clusters.push_back(index_cluster);
+            }
         }
     }
     component.size = convertBytesToInt(mainEntry.size, 4);
@@ -67,11 +76,16 @@ void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubE
 void printInfo(const Component& component) {
     wcout << L"Tên: " << component.name << endl;
     wcout << L"Trạng thái: " << component.attributes << endl;
-    wcout << L"Cluster bắt đầu: " << component.first_cluster << endl;
-    wcout << L"Chiếm các cluster: ";
-    for (int cluster : component.clusters) {
-        wcout << cluster << " ";
+    if (component.first_cluster != 0) {
+        wcout << L"Cluster bắt đầu: " << component.first_cluster << endl;
+        wcout << L"Chiếm các cluster: ";
+        for (int cluster : component.clusters) {
+            wcout << cluster << " ";
+        }
+        wcout << endl;
     }
-    wcout << endl;
+    else {
+        wcout << L"Không chiếm cluster nào" << endl;
+    }
     wcout << L"Kích thước: " << component.size << endl;
 }

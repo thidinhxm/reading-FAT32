@@ -26,16 +26,18 @@ uint32_t convertBytesToInt(const uint8_t bytes[], int n) {
 
 wstring trim(const wstring& src) {
     int left = 0; 
-    int right = 0;
+    int right = src.size() - 1;
     for (int i = 0; i < src.size(); i++) {
         if (src[i] != L' ') {
             left = i;
+            break;
         }
     }
 
     for (int i = src.size() - 1; i >= 0; i--) {
         if (src[i] != L' ') {
             right = i;
+            break;
         }
     }
     return src.substr(left, right - left + 1);
