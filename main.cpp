@@ -66,7 +66,7 @@ int main() {
         sb++;
     }
     
-    readAndPrintFolderInfo(L"\\\\.\\H:", fat1, sector0, sc, first_cluster_RDET);
+    readAndPrintFolderInfo(L"\\\\.\\H:", fat1, sector0, sc, first_cluster_RDET, 0);
     
     for (auto bytes : fat1) {
         delete[] bytes;
