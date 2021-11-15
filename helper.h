@@ -9,4 +9,5 @@ uint32_t convertBytesToInt(const uint8_t bytes[], int n);
 wstring trim(const wstring& src);
 wstring convertBytesToWString(const uint8_t bytes[], int n);
 int readSector(LPCWSTR drive, int readPoint, BYTE sector[512]);
+int printTab(int tab);
 #endif

@@ -73,21 +73,15 @@ void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubE
     component.size = convertBytesToInt(mainEntry.size, 4);
 }
 
-void printInfo(const Component& component, uint32_t sector0, uint32_t sc, int press) {
-    for (int i = 0; i < press; i++) {
-        wcout << '\t';
-    }
+void printInfo(const Component& component, uint32_t sector0, uint32_t sc, int tab) {
+    printTab(tab);
     wcout << L"Tên: " << component.name << endl;
-    for (int i = 0; i < press; i++) {
-        wcout << '\t';
-    }
+    printTab(tab);
     wcout << L"Trạng thái: " << component.attributes << endl;
-    for (int i = 0; i < press; i++) {
-        wcout << '\t';
-    }
+    printTab(tab);
     if (component.first_cluster != 0) {
         wcout << L"Cluster bắt đầu: " << component.first_cluster << endl;
-        for (int i = 0; i < press; i++) {
+        for (int i = 0; i < tab; i++) {
             wcout << '\t';
         }
         wcout << L"Chiếm các cluster: ";
@@ -95,33 +89,31 @@ void printInfo(const Component& component, uint32_t sector0, uint32_t sc, int pr
             wcout << cluster << L" ";
         }
         wcout << endl;
-        for (int i = 0; i < press; i++) {
+        for (int i = 0; i < tab; i++) {
             wcout << '\t';
         }
         wcout << L"Chiếm các sector:" << endl;
         
         for (int cluster : component.clusters) {
-            for (int i = 0; i < press; i++) {
+            for (int i = 0; i < tab; i++) {
                 wcout << '\t';
             }
             wcout << cluster * sc + sector0 << L" ----> " << cluster * sc + sector0 + sc - 1 << endl;
         }
     }
     else {
-        for (int i = 0; i < press; i++) {
+        for (int i = 0; i < tab; i++) {
             wcout << '\t';
         }
         wcout << L"Không chiếm cluster nào" << endl;
     }
-    for (int i = 0; i < press; i++) {
-        wcout << '\t';
-    }
+    printTab(tab);
     wcout << L"Kích thước: " << component.size << endl;
 }
 
 
 
-void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int press) {
+void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int tab) {
     vector<SubEntry> subEntryList;
     BYTE sector[512];
     uint32_t first_sector = sector0 + sc * root_cluster;
@@ -160,11 +152,11 @@ void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32
                     setInfo(component, mainEntry, subEntryList, fat1);
                 }
                 subEntryList.clear();
-                printInfo(component, sector0, sc, press);
+                printInfo(component, sector0, sc, tab);
                 wcout << endl << endl;
 
                 if (sector[j + 11] == 0x10) {
-                    readAndPrintFolderInfo(disk_path, fat1, sector0, sc, component.first_cluster, press + 2);
+                    readAndPrintFolderInfo(disk_path, fat1, sector0, sc, component.first_cluster, tab + 2);
                 }
             }
             else {

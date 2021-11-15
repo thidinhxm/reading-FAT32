@@ -1,5 +1,5 @@
 #include "helper.h"
-
+#include <iostream>
 uint32_t convertBytesToInt(const uint8_t bytes[], int n) {
     uint32_t res = 0;
     for (int i = n - 1; i >= 0; i--) {
@@ -69,5 +69,11 @@ int readSector(LPCWSTR drive, int readPoint, BYTE sector[512])
     else
     {
         return 0;
+    }
+}
+
+int printTab(int tab) {
+    for (int i = 0; i < tab; i++) {
+        wcout << '\t';
     }
 }
