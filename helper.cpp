@@ -1,21 +1,5 @@
 #include "helper.h"
 
-wstring toHex(unsigned int decnum) {
-    wstring hexnum = L"";
-    int rem;
-    while(decnum != 0)
-    {
-        rem = decnum % 16;
-        if(rem < 10)
-            rem = rem + '0';
-        else
-            rem = rem - 10 + 'A';
-        hexnum = (wchar_t)rem + hexnum;
-        decnum = decnum / 16;
-    }
-    return hexnum.size() >= 2 ? hexnum : hexnum.size() == 1 ? L"0" + hexnum : L"00";
-}
-
 uint32_t convertBytesToInt(const uint8_t bytes[], int n) {
     uint32_t res = 0;
     for (int i = n - 1; i >= 0; i--) {
@@ -55,4 +39,35 @@ wstring convertBytesToWString(const uint8_t bytes[], int n) {
         str += (wchar_t)convertBytesToInt(bytes + i, 2);
     }
     return str;
+}
+
+int readSector(LPCWSTR drive, int readPoint, BYTE sector[512])
+{
+    int retCode = 0;
+    DWORD bytesRead;
+    HANDLE device = NULL;
+
+    device = CreateFileW(drive,    // Drive to open
+        GENERIC_READ,           // Access mode
+        FILE_SHARE_READ | FILE_SHARE_WRITE,        // Share Mode
+        NULL,                   // Security Descriptor
+        OPEN_EXISTING,          // How to create
+        0,                      // File attributes
+        NULL);                  // Handle to template
+
+    if (device == INVALID_HANDLE_VALUE) // Open Error
+    {
+        return 1;
+    }
+
+    SetFilePointer(device, readPoint, NULL, FILE_BEGIN);//Set a Point to Read
+
+    if (!ReadFile(device, sector, 512, &bytesRead, NULL))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }

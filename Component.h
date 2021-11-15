@@ -1,5 +1,5 @@
-#ifndef __DATA_H__
-#define __DATA_H__
+#ifndef __COMPONENT_H__
+#define __COMPONENT_H__
 
 #include <iostream>
 #include <string>
@@ -20,5 +20,6 @@ struct Component{
 void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubEntry> subEntryList, vector<BYTE*> fat1);
 void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat1);
 void printInfo(const Component& component);
+void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster);
 
 #endif

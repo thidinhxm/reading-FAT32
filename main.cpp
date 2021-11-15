@@ -3,7 +3,6 @@
 #include <vector>
 #include <fcntl.h>
 #include "BootSector.h"
-#include "Sector.h"
 #include "Entry.h"
 #include "helper.h"
 #include "Component.h"
@@ -17,21 +16,35 @@ int main() {
 
     BYTE sector[512];
     BootSector bootSector;
+    // wchar_t disk_name;
+    // wcout << L"Nhập tên ô đĩa: " << endl;
+    // wcin >> disk_name;
+    // WCHAR disk_path[] = L"\\\\.\\ :";
+    // disk_path[7] = disk_name;
+
     if (readSector(L"\\\\.\\H:", 0, sector)) {
-        wcout << "Cannot read disk" << endl;
+        wcout << L"Không thể đọc ổ cứng" << endl;
         return 1;
     }
-    
+    wcout << L"ĐỌC THÔNG TIN CỦA MỘT PHÂN VÙNG" << endl << endl;
     memcpy(&bootSector, sector, sizeof(BootSector));
     printInfoBootSector(bootSector);
+
+
+    /* --------------GET INFOMATION----------------------------------------------------*/
+
     uint32_t sb = convertBytesToInt(bootSector.reserved_sectors, SIZE_RESERVED_SECTORS); // first sector of FAT1
     uint32_t nf = uint32_t(bootSector.numbers_of_FAT); // numbers of FAT table
     uint32_t sf = convertBytesToInt(bootSector.sectors_per_FAT, SIZE_SECTORS_PER_FAT);// sector per FAT
-    uint32_t first_RDET = sb + nf * sf;
-    wcout << "Location of first sector of RDET: " << first_RDET << endl;
-    
-    wcout << endl << endl << endl;
-    wcout << L"Đọc cây thư mục gốc" << endl << endl;
+    uint32_t first_RDET = sb + nf * sf; // 32768 first sector of RDET
+    uint32_t sc = (int)bootSector.sectors_per_cluster;
+    uint32_t first_cluster_RDET = convertBytesToInt(bootSector.root_cluster, SIZE_ROOT_CLUSTER);
+
+    uint32_t sector0 = first_RDET - first_cluster_RDET * sc; // sector cua cluster 0 tinh theo cluster bat dau RDET
+
+    wcout << L"------------------------------------------------" << endl;
+    wcout << L"ĐỌC CÂY THƯ MỤC GỐC" << endl << endl;
+
     // Read FAT1
     vector<BYTE*> fat1;
     while (true) {
@@ -52,50 +65,8 @@ int main() {
         }
         sb++;
     }
-    vector<SubEntry> subEntryList;
-    // read RDET
-    for (int i = 1;; i++) { // handle each sector start in RDET
-        readSector(L"\\\\.\\H:", first_RDET * 512 +  512 * (i - 1), sector);
-        if (sector[0] == 0) {
-            wcout << L"Kết thúc" << endl;
-            break;
-        }
-        
-        for (int j = 0; j < 512; j += 32) { // handle each entry, 1 entry = 32 bytes
-            if (sector[j] == 0) { // empty entry --> end
-                break;
-            }
-            if (sector[j] == 0xe5) { // e5h ---> deleted
-                subEntryList.clear();
-                continue;
-            }
-            
-            if (sector[j + 11] == 0x0f) { // 0fh ---> subEntry
-                SubEntry subEntry;
-                memcpy(&subEntry, sector + j, 32);
-                subEntryList.push_back(subEntry);
-            } 
-            else if (sector[j + 11] == 0x10 || sector[j + 11] == 0x20) { // 10h = 1 0000b ----> folder 20h = 10 000 ---> file
-                MainEntry mainEntry;
-                memcpy(&mainEntry, sector + j, 32);
-                Component component;
-                if(!subEntryList.size()) { // there are no sub entrys
-                    setInfo(component, mainEntry, fat1);
-                    
-                }
-                else {
-                    setInfo(component, mainEntry, subEntryList, fat1);
-                }
-                subEntryList.clear();
-                printInfo(component);
-                wcout << endl << endl << endl;
-            }
-            else {
-                subEntryList.clear();
-            }
-        }
-    }
     
+    readAndPrintFolderInfo(L"\\\\.\\H:", fat1, sector0, sc, first_cluster_RDET);
     
     for (auto bytes : fat1) {
         delete[] bytes;

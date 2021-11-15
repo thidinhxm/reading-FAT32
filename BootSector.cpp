@@ -5,15 +5,15 @@
 using namespace std;
 
 void printInfoBootSector(const BootSector& bootSector) {
-    wcout << "Sector per cluster: " << (int)bootSector.sectors_per_cluster << endl;
-    wcout << "Sectors of BootSector (Reserved Sectors): " << convertBytesToInt(bootSector.reserved_sectors, SIZE_RESERVED_SECTORS) << endl;
-    wcout << "Numbers of FAT:" << (int)bootSector.numbers_of_FAT << endl;
-    wcout << "Size of volume (sectors): " << convertBytesToInt(bootSector.total_sectors, SIZE_TOTAL_SECTORS) << endl;
-    wcout << "Size of FAT table (sectors): " << convertBytesToInt(bootSector.sectors_per_FAT, SIZE_SECTORS_PER_FAT) << endl;
-    wcout << "Root cluster: " << convertBytesToInt(bootSector.root_cluster, SIZE_ROOT_CLUSTER) << endl;
-    wcout << "System info sector: " << convertBytesToInt(bootSector.system_info_sector, SIZE_SYSTEM_INFO_SECTOR) << endl;
-    wcout << "Backup Boot sector: " << convertBytesToInt(bootSector.backup_boot_sector, SIZE_BACKUP_BOOT_SECTOR) << endl;
-    wcout << "FAT type: ";
+    wcout << L"Số sector cho một cluster: " << (int)bootSector.sectors_per_cluster << endl;
+    wcout << L"Số sector vùng Boot Sector: " << convertBytesToInt(bootSector.reserved_sectors, SIZE_RESERVED_SECTORS) << endl;
+    wcout << L"Số bảng FAT:" << (int)bootSector.numbers_of_FAT << endl;
+    wcout << L"Kích thước của volume (sectors): " << convertBytesToInt(bootSector.total_sectors, SIZE_TOTAL_SECTORS) << endl;
+    wcout << L"Kích thước mỗi bảng FAT(sectors): " << convertBytesToInt(bootSector.sectors_per_FAT, SIZE_SECTORS_PER_FAT) << endl;
+    wcout << L"Cluster bắt đầu của RDET: " << convertBytesToInt(bootSector.root_cluster, SIZE_ROOT_CLUSTER) << endl;
+    wcout << L"Sector chứa thông tin phụ (về cluster trống): " << convertBytesToInt(bootSector.system_info_sector, SIZE_SYSTEM_INFO_SECTOR) << endl;
+    wcout << L"Sector chứa bảng lưu của Boot Sector: " << convertBytesToInt(bootSector.backup_boot_sector, SIZE_BACKUP_BOOT_SECTOR) << endl;
+    wcout << L"Loại FAT: ";
     for (int i = 0; i < SIZE_FAT_TYPE; i++) {
         wcout << (wchar_t)bootSector.FAT_type[i];
     } 

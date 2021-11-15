@@ -1,6 +1,5 @@
 #include "Component.h"
 #include "helper.h"
-
 void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat1) {
     wstring name = L"";
     for (int i = 0; i < 8; i++) {
@@ -88,4 +87,60 @@ void printInfo(const Component& component) {
         wcout << L"Không chiếm cluster nào" << endl;
     }
     wcout << L"Kích thước: " << component.size << endl;
+}
+
+
+
+void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster) {
+    vector<SubEntry> subEntryList;
+    BYTE sector[512];
+    
+    uint32_t first_sector = sector0 + sc * root_cluster;
+    for (int i = 1;; i++) { // handle each sector start in RDET
+        readSector(disk_path, first_sector * 512 +  512 * (i - 1), sector);
+        if (sector[0] == 0) {
+            break;
+        }
+        
+        for (int j = 0; j < 512 - 31; j += 32) { // handle each entry, 1 entry = 32 bytes
+            if (sector[j] == 0) { // empty entry --> end
+                break;
+            }
+            if (i == 1 && j < 33) { // ignore first 2 entry
+                continue;
+            }
+            if (sector[j] == 0xe5) { // e5h ---> deleted
+                subEntryList.clear();
+                continue;
+            }
+            
+            if (sector[j + 11] == 0x0f) { // 0fh ---> subEntry
+                SubEntry subEntry;
+                memcpy(&subEntry, sector + j, 32);
+                subEntryList.push_back(subEntry);
+            } 
+            else if (sector[j + 11] == 0x10 || sector[j + 11] == 0x20) { // 10h = 1 0000b ----> folder 20h = 10 000 ---> file
+                MainEntry mainEntry;
+                memcpy(&mainEntry, sector + j, 32);
+                Component component;
+                if(!subEntryList.size()) { // there are no sub entrys
+                    setInfo(component, mainEntry, fat1);
+                    
+                }
+                else {
+                    setInfo(component, mainEntry, subEntryList, fat1);
+                }
+                subEntryList.clear();
+                printInfo(component);
+                wcout << endl << endl;
+
+                if (sector[j + 11] == 0x10) {
+                    readAndPrintFolderInfo(disk_path, fat1, sector0, sc, component.first_cluster);
+                }
+            }
+            else {
+                subEntryList.clear();
+            }
+        }
+    }
 }

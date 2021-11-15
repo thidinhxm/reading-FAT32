@@ -2,10 +2,11 @@
 #define __HELPER_H__
 #include <string>
 #include <stdint.h>
+#include <windows.h>
 using namespace std;
 
-wstring toHex(unsigned int decnum);
 uint32_t convertBytesToInt(const uint8_t bytes[], int n);
 wstring trim(const wstring& src);
 wstring convertBytesToWString(const uint8_t bytes[], int n);
+int readSector(LPCWSTR drive, int readPoint, BYTE sector[512]);
 #endif
