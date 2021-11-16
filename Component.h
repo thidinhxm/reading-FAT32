@@ -21,5 +21,5 @@ void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubE
 void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat1);
 void printInfo(const Component& component,  uint32_t sector0, uint32_t sc, int tab);
 void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int tab);
-
+void readTxtFile(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int tab);
 #endif

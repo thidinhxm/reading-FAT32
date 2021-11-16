@@ -72,7 +72,7 @@ int readSector(LPCWSTR drive, int readPoint, BYTE sector[512])
     }
 }
 
-int printTab(int tab) {
+void printTab(int tab) {
     for (int i = 0; i < tab; i++) {
         wcout << '\t';
     }
