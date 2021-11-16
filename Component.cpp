@@ -1,6 +1,7 @@
 #include "Component.h"
 #include "helper.h"
 
+/*--------- SET INFORMATION FOR FILE OR FOLDER IF IT JUST HAS MAIN ENTRY--------------------*/
 void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat1) {
     wstring name = L"";
     for (int i = 0; i < 8; i++) {
@@ -21,11 +22,11 @@ void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat
 
     component.first_cluster = convertBytesToInt(mainEntry.first_cluster_high, 2) * 0x100 + convertBytesToInt(mainEntry.first_cluster_low, 2); 
     
-    // first_cluster = 0 ==> no cluster
-    if (component.first_cluster != 0) { 
+    
+    if (component.first_cluster != 0) { // first_cluster = 0 ==> there are no clusters
         component.clusters.push_back(component.first_cluster);
 
-        for (int i = component.first_cluster; i < fat1.size(); i++) {
+        for (int i = component.first_cluster; i < fat1.size(); i++) { // read FAT1 to know next clusters
             uint32_t index_cluster = convertBytesToInt(fat1[i], 4);
         if (index_cluster == 0x0fffffff) {
             break;
@@ -38,9 +39,11 @@ void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat
     component.size = convertBytesToInt(mainEntry.size, 4);
 }
 
+
+/*--------- SET INFORMATION FOR FILE OR FOLDER IF IT HAS MAIN ENTRY AND ONE OR MORE SUB ENTRY--------------------*/
 void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubEntry> subEntryList, vector<BYTE*> fat1) {
     wstring name = L"";
-    for (int i = subEntryList.size() - 1; i >= 0; i--) {
+    for (int i = subEntryList.size() - 1; i >= 0; i--) { 
         name += convertBytesToWString(subEntryList[i].file_name_1, LENGTH_FILE_NAME_1);
         name += convertBytesToWString(subEntryList[i].file_name_2, LENGTH_FILE_NAME_2);
         name += convertBytesToWString(subEntryList[i].file_name_3, LENGTH_FILE_NAME_3);
@@ -56,8 +59,8 @@ void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubE
 
     component.first_cluster = convertBytesToInt(mainEntry.first_cluster_high, 2) * 0x100 + convertBytesToInt(mainEntry.first_cluster_low, 2); 
     
-    // first_cluster = 0 ==> no cluster
-    if (component.first_cluster != 0) { 
+    
+    if (component.first_cluster != 0) { // first_cluster = 0 ==> there are no clusters
         component.clusters.push_back(component.first_cluster);
 
         for (int i = component.first_cluster; i < fat1.size(); i++) {
@@ -73,6 +76,8 @@ void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubE
     component.size = convertBytesToInt(mainEntry.size, 4);
 }
 
+
+/*-------------------PRINT INFORMATION OF FILE OR FOLDER ---------------------------------*/
 void printInfo(const Component& component, uint32_t sector0, uint32_t sc, int tab) {
     printTab(tab);
     wcout << L"Tên: " << component.name << endl;
@@ -92,9 +97,7 @@ void printInfo(const Component& component, uint32_t sector0, uint32_t sc, int ta
         wcout << L"Chiếm các sector:" << endl;
         
         for (int cluster : component.clusters) {
-            for (int i = 0; i < tab; i++) {
-                wcout << '\t';
-            }
+            printTab(tab);
             wcout << cluster * sc + sector0 << L" ----> " << cluster * sc + sector0 + sc - 1 << endl;
         }
     }
@@ -107,13 +110,13 @@ void printInfo(const Component& component, uint32_t sector0, uint32_t sc, int ta
 }
 
 
-
-void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int tab) {
+/*------------------------READ AND PRINT FOLDER INFORMATION INCLUDE SUB FOLDERS AND FILES ------------------------------------------------*/ 
+void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int tab) {// tab ==> display better
     vector<SubEntry> subEntryList;
     BYTE sector[512];
-    uint32_t first_sector = sector0 + sc * root_cluster;
+    uint32_t first_sector = sector0 + sc * root_cluster; // first sector of file or folder ==> sector ~ root_cluster
     for (int i = 1;; i++) { // handle each sector start in RDET
-        readSector(disk_path, first_sector * 512 +  512 * (i - 1), sector);
+        readSector(disk_path, (first_sector + i - 1) * 512, sector);
         if (sector[0] == 0) {
             break;
         }
@@ -148,53 +151,75 @@ void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32
                 else {
                     setInfo(component, mainEntry, subEntryList, fat1);
                 }
-                subEntryList.clear();
+                subEntryList.clear(); // clear sub entry for next main entry
+
                 printInfo(component, sector0, sc, tab);
-                wcout << endl << endl;
-                if (sector[j + 11] == 0x10) { // í folder ==> read sub folder
+                
+
+                if (sector[j + 11] == 0x10) { // folder ==> read sub folder
                     readAndPrintFolderInfo(disk_path, fat1, sector0, sc, component.first_cluster, tab + 2);
                 }
-                else {
+                else {// file ---> print information of file txt
                     wstring extension = component.name.substr(component.name.size() - 3, 3); // 3 last characters
                     if (extension == L"txt" || extension == L"TXT") {
-                        readTxtFile(disk_path, fat1, sector0, sc, component.first_cluster, tab);
-                        cout << endl << endl;
+                        if (component.size == 0) {
+                            printTab(tab);
+                            wcout << L"File rỗng" << endl;
+                        }
+                        else {
+                            readAndPrintTxtFile(disk_path, component, sector0, sc , tab);
+                        }
+                        
                     }
                     else {
                     printTab(tab);
                     wcout << L"Không phải file txt => cần một phần mềm chuyên dụng để mở" << endl << endl << endl;
                     }
                 }
-                
+                cout << endl << endl;
             }
         }
     }
 }
 
-void readTxtFile(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int tab) {
+void readAndPrintTxtFile(LPCWSTR disk_path, const Component& file, uint32_t sector0, uint32_t sc, int tab) {
     BYTE sector[512];
-    uint32_t first_sector = sector0 + sc * root_cluster;
-    readSector(disk_path, first_sector * 512, sector);
     wstring result;
-    for (int i = 0; i < 512; i++) {
-        if (sector[i] >= 0xe0) {
+    for (int cluster : file.clusters) {
+        uint32_t first_sector = sector0 + sc * cluster;
+        int j = 0; 
+        for (j; j < sc; j++) {
+            readSector(disk_path, (first_sector + j) * 512, sector);
+            int i = 0;
+            for (i; i < 512; i++) {
+                if (sector[i] == 0) {
+                    break;
+                }
+                if (sector[i] < 0x80) { // unicode 1 byte
+                    result += (wchar_t)sector[i];
+                }
+                else if (0xc2 <= sector[i] && sector[i] <= 0xdf) { // unicode 2 byte
+                    int number = (sector[i] - 0xc2) * 64 + sector[i + 1]; // sau mỗi 64 số thì tăng chỉ sô nhận biết lên 1, mò bảng unicode rồi tính ra được :) 
+                    wchar_t wch = (wchar_t)(number);
+                    result += wch;
+                    ++i;
+                }
+                else if (0xe0 <= sector[i] && sector[i] <= 0xef) { // unicode 3 bytes
+                    int number = (sector[i] - 0xe0) * 0x1000 + (sector[i + 1] - 0x80) * 64 + (sector[i + 2] - 0x80); // mò bảng unicode rồi tính ra được :) 
+                    wchar_t wch = (wchar_t)(number);
+                    result += wch;
+                    i += 2;
+                }
+                // kí tự bàn phím chỉ có 3 byte utf8 là tối đa
+                
+            }
+            if (i < 512) {
+                break;
+            }
         }
-        if (sector[i] < 0x80) { // unicode 1 byte
-            result += (wchar_t)sector[i];
+        if (j < sc) {
+            break;
         }
-        else if (0xc2 <= sector[i] && sector[i] <= 0xdf) { // unicode 2 byte
-            int number = (sector[i] - 0xc2) * 64 + sector[i + 1]; // sau mỗi 64 số thì tăng chỉ sô nhận biết lên 1
-            wchar_t wch = (wchar_t)(number);
-            result += wch;
-            ++i;
-        }
-        else if (0xe0 <= sector[i] && sector[i] <= 0xef) { // unicode 3 bytes
-            int number = (sector[i] - 0xe0) * 0x1000 + (sector[i + 1] - 0x80) * 64 + (sector[i + 2] - 0x80); 
-            wchar_t wch = (wchar_t)(number);
-            result += wch;
-            i += 2;
-        }
-        // kí tự bàn phím chỉ có 3 byte utf8 là tối đa
     }
     wcout << L"Nội dung của tập tin txt" << endl;
     wcout << result << endl;

@@ -26,12 +26,13 @@ int main() {
         wcout << L"Không thể đọc ổ cứng" << endl;
         return 1;
     }
+    /*-----------------------------READ INFORMATION-------------------------------------------------------*/ 
     wcout << L"ĐỌC THÔNG TIN CỦA MỘT PHÂN VÙNG" << endl << endl;
     memcpy(&bootSector, sector, sizeof(BootSector));
     printInfoBootSector(bootSector);
 
 
-    /* --------------GET INFOMATION----------------------------------------------------*/
+    /* ---------------------CALCULATE AND GET MORE INFOMATION----------------------------------------------------*/
 
     uint32_t sb = convertBytesToInt(bootSector.reserved_sectors, SIZE_RESERVED_SECTORS); // first sector of FAT1
     uint32_t nf = uint32_t(bootSector.numbers_of_FAT); // numbers of FAT table
@@ -42,10 +43,15 @@ int main() {
 
     uint32_t sector0 = first_RDET - first_cluster_RDET * sc; // sector cua cluster 0 tinh theo cluster bat dau RDET
 
+
+
+    /* ------------------------READ ROOT FOLDER -------------------------------------------------------------*/ 
+
     wcout << L"------------------------------------------------" << endl;
     wcout << L"ĐỌC CÂY THƯ MỤC GỐC" << endl << endl;
 
-    // Read FAT1
+    
+    /* ------------------READ FAT1 ------------------------------------*/ 
     vector<BYTE*> fat1;
     while (true) {
         readSector(L"\\\\.\\H:", sb * 512, sector);
@@ -66,6 +72,7 @@ int main() {
         sb++;
     }
     
+    /* ----------------READ AND PRINT INFO FOLDER --------------------------*/
     readAndPrintFolderInfo(L"\\\\.\\H:", fat1, sector0, sc, first_cluster_RDET, 0);
     
     for (auto bytes : fat1) {
