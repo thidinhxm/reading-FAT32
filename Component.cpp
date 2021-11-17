@@ -162,7 +162,9 @@ void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32
                 else {// file ---> print information of file txt
                     wstring extension = component.name.substr(component.name.size() - 3, 3); // 3 last characters
                     if (extension == L"txt" || extension == L"TXT") {
-                        readAndPrintTxtFile(disk_path, component, sector0, sc , tab);
+                        // readAndPrintTxtFile(disk_path, component, sector0, sc , tab);
+                        vector<BYTE> bytes = readTXTFile(disk_path, component, sector0, sc, tab);
+                        printTxtFile(bytes);
                     }
                     else {
                     printTab(tab);
@@ -214,6 +216,38 @@ void readAndPrintTxtFile(LPCWSTR disk_path, const Component& file, uint32_t sect
             break;
         }
     }
+    wcout << L"Nội dung của tập tin txt" << endl;
+    wcout << result << endl;
+}
+
+vector<BYTE> readTXTFile(LPCWSTR disk_path, const Component& file, uint32_t sector0, uint32_t sc, int tab) {
+    BYTE sector[512];
+    vector<BYTE> bytes;
+    for (int cluster : file.clusters) {
+        uint32_t first_sector = sector0 + sc * cluster;
+        int j = 0; 
+        for (j; j < sc; j++) {
+            readSector(disk_path, (first_sector + j) * 512, sector);
+            int i = 0;
+            for (i; i < 512; i++) {
+                if (sector[i] == 0) {
+                    break;
+                }
+                bytes.push_back(sector[i]);
+            }
+            if (i < 512) {
+                break;
+            }
+        }
+        if (j < sc) {
+            break;
+        }
+    }
+    return bytes;
+}
+
+void printTxtFile(vector<BYTE> bytes) {
+    wstring result = convertUnicodeHexCodeToCodePoint(bytes);
     wcout << L"Nội dung của tập tin txt" << endl;
     wcout << result << endl;
 }

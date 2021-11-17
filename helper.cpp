@@ -1,5 +1,6 @@
 #include "helper.h"
 #include <iostream>
+#include <vector>
 uint32_t convertBytesToInt(const uint8_t bytes[], int n) {
     uint32_t res = 0;
     for (int i = n - 1; i >= 0; i--) {
@@ -76,4 +77,27 @@ void printTab(int tab) {
     for (int i = 0; i < tab; i++) {
         wcout << '\t';
     }
+}
+
+
+wstring convertUnicodeHexCodeToCodePoint(vector<BYTE> bytes) {
+    wstring result = L"";
+    for (int i = 0; i < bytes.size(); i++) {
+        if (bytes[i] < 0x80) { // unicode 1 byte
+            result += (wchar_t)bytes[i];
+        }
+        else if (0xc2 <= bytes[i] && bytes[i] <= 0xdf) { // unicode 2 byte
+            int number = (bytes[i] - 0xc2) * 64 + bytes[i + 1]; // sau mỗi 64 số thì tăng chỉ sô nhận biết lên 1, mò bảng unicode rồi tính ra được :) 
+            wchar_t wch = (wchar_t)(number);
+            result += wch;
+            ++i;
+        }
+        else if (0xe0 <= bytes[i] && bytes[i] <= 0xef) { // unicode 3 bytes
+            int number = (bytes[i] - 0xe0) * 0x1000 + (bytes[i + 1] - 0x80) * 64 + (bytes[i + 2] - 0x80); // mò bảng unicode rồi tính ra được :) 
+            wchar_t wch = (wchar_t)(number);
+            result += wch;
+            i += 2;
+        }
+    }
+    return result;
 }
