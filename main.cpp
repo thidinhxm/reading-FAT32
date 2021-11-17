@@ -16,13 +16,13 @@ int main() {
 
     BYTE sector[512];
     BootSector bootSector;
-    // wchar_t disk_name;
-    // wcout << L"Nhập tên ô đĩa: " << endl;
-    // wcin >> disk_name;
-    // WCHAR disk_path[] = L"\\\\.\\ :";
-    // disk_path[7] = disk_name;
-
-    if (readSector(L"\\\\.\\H:", 0, sector)) {
+    wchar_t disk_name;
+    wcout << L"Nhập tên ô đĩa: ";
+    wcin >> disk_name;
+    WCHAR disk_path[] = L"\\\\.\\ :";
+    disk_path[4] = disk_name;
+    
+    if (readSector(disk_path, 0, sector)) {
         wcout << L"Không thể đọc ổ cứng" << endl;
         return 1;
     }
@@ -54,7 +54,7 @@ int main() {
     /* ------------------READ FAT1 ------------------------------------*/ 
     vector<BYTE*> fat1;
     while (true) {
-        readSector(L"\\\\.\\H:", sb * 512, sector);
+        readSector(disk_path, sb * 512, sector);
         int i = 0;
         while (i < 509)  {
             BYTE* fat_member = new BYTE[4];
@@ -73,7 +73,7 @@ int main() {
     }
     
     /* ----------------READ AND PRINT INFO FOLDER --------------------------*/
-    readAndPrintFolderInfo(L"\\\\.\\H:", fat1, sector0, sc, first_cluster_RDET, 0);
+    readAndPrintFolderInfo(disk_path, fat1, sector0, sc, first_cluster_RDET, 0);
     
     for (auto bytes : fat1) {
         delete[] bytes;

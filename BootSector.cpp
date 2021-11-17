@@ -7,7 +7,7 @@ using namespace std;
 void printInfoBootSector(const BootSector& bootSector) {
     wcout << L"Số sector cho một cluster: " << (int)bootSector.sectors_per_cluster << endl;
     wcout << L"Số sector vùng Boot Sector: " << convertBytesToInt(bootSector.reserved_sectors, SIZE_RESERVED_SECTORS) << endl;
-    wcout << L"Số bảng FAT:" << (int)bootSector.numbers_of_FAT << endl;
+    wcout << L"Số lượng bảng FAT: " << (int)bootSector.numbers_of_FAT << endl;
     wcout << L"Kích thước của volume (sectors): " << convertBytesToInt(bootSector.total_sectors, SIZE_TOTAL_SECTORS) << endl;
     wcout << L"Kích thước mỗi bảng FAT(sectors): " << convertBytesToInt(bootSector.sectors_per_FAT, SIZE_SECTORS_PER_FAT) << endl;
     wcout << L"Cluster bắt đầu của RDET: " << convertBytesToInt(bootSector.root_cluster, SIZE_ROOT_CLUSTER) << endl;

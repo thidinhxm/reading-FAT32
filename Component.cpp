@@ -95,11 +95,11 @@ void printInfo(const Component& component, uint32_t sector0, uint32_t sc, int ta
         wcout << endl;
         printTab(tab);
         wcout << L"Chiếm các sector:" << endl;
-        
+        printTab(tab);
         for (int cluster : component.clusters) {
-            printTab(tab);
-            wcout << cluster * sc + sector0 << L" ----> " << cluster * sc + sector0 + sc - 1 << endl;
+            wcout << cluster * sc + sector0 << L" --> " << cluster * sc + sector0 + sc - 1 << L", ";
         }
+        wcout << endl;
     }
     else {
         printTab(tab);
@@ -157,26 +157,19 @@ void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32
                 
 
                 if (sector[j + 11] == 0x10) { // folder ==> read sub folder
-                    readAndPrintFolderInfo(disk_path, fat1, sector0, sc, component.first_cluster, tab + 2);
+                    readAndPrintFolderInfo(disk_path, fat1, sector0, sc, component.first_cluster, tab + 3);
                 }
                 else {// file ---> print information of file txt
                     wstring extension = component.name.substr(component.name.size() - 3, 3); // 3 last characters
                     if (extension == L"txt" || extension == L"TXT") {
-                        if (component.size == 0) {
-                            printTab(tab);
-                            wcout << L"File rỗng" << endl;
-                        }
-                        else {
-                            readAndPrintTxtFile(disk_path, component, sector0, sc , tab);
-                        }
-                        
+                        readAndPrintTxtFile(disk_path, component, sector0, sc , tab);
                     }
                     else {
                     printTab(tab);
-                    wcout << L"Không phải file txt => cần một phần mềm chuyên dụng để mở" << endl << endl << endl;
+                    wcout << L"Không phải file txt => cần một phần mềm chuyên dụng để mở" << endl;
                     }
                 }
-                cout << endl << endl;
+                wcout << endl << endl << endl << endl;
             }
         }
     }
