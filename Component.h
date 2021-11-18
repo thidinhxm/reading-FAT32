@@ -16,12 +16,15 @@ struct Component{
     vector<int> clusters;
 };
 
-
-void setInfo(Component& component, const MainEntry& mainEntry, const vector<SubEntry> subEntryList, vector<BYTE*> fat1);
-void setInfo(Component& component, const MainEntry& mainEntry, vector<BYTE*> fat1);
+Component getComponent(LPCWSTR disk_path, const MainEntry& main_entry, const vector<SubEntry>& sub_entry_list, int sb, int sf);
 void printInfo(const Component& component,  uint32_t sector0, uint32_t sc, int tab);
-void readAndPrintFolderInfo(LPCWSTR disk_path, const vector<BYTE*>& fat1, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int tab);
-void readAndPrintTxtFile(LPCWSTR disk_path, const Component& file, uint32_t sector0, uint32_t sc, int tab);
+void readAndPrintFolderTree(LPCWSTR disk_path, uint32_t sector0, uint32_t sc, uint32_t root_cluster, int sb, int sf, int tab);
 vector<BYTE> readTXTFile(LPCWSTR disk_path, const Component& file, uint32_t sector0, uint32_t sc, int tab);
-void printTxtFile(vector<BYTE> bytes);
+void printTXTFile(vector<BYTE> bytes);
+void printTXTFile(vector<BYTE> bytes, int tab);
+void handleComponentIsFile(LPCWSTR disk_path, const Component& component, uint32_t sector0, int sc, int tab);
+vector<int> getClusters(LPCWSTR disk_path, int first_cluster, int sb, int sf);
+
+
+
 #endif

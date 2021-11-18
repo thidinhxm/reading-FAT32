@@ -47,5 +47,5 @@ struct BootSector {
     uint8_t end_signature[2];
 };
 
-void printInfoBootSector(const BootSector& bootSector); 
+void printInfoBootSector(const BootSector& boot_sector); 
 #endif

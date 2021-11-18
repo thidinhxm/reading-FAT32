@@ -15,7 +15,7 @@ int main() {
     _setmode(_fileno(stdout), _O_U16TEXT);
 
     BYTE sector[512];
-    BootSector bootSector;
+    BootSector boot_sector;
     wchar_t disk_name;
     wcout << L"Nhập tên ô đĩa: ";
     wcin >> disk_name;
@@ -28,56 +28,33 @@ int main() {
     }
     /*-----------------------------READ INFORMATION-------------------------------------------------------*/ 
     wcout << L"ĐỌC THÔNG TIN CỦA MỘT PHÂN VÙNG" << endl << endl;
-    memcpy(&bootSector, sector, sizeof(BootSector));
-    printInfoBootSector(bootSector);
+    memcpy(&boot_sector, sector, sizeof(BootSector));
+    printInfoBootSector(boot_sector);
 
 
     /* ---------------------CALCULATE AND GET MORE INFOMATION----------------------------------------------------*/
 
-    uint32_t sb = convertBytesToInt(bootSector.reserved_sectors, SIZE_RESERVED_SECTORS); // first sector of FAT1
-    uint32_t nf = uint32_t(bootSector.numbers_of_FAT); // numbers of FAT table
-    uint32_t sf = convertBytesToInt(bootSector.sectors_per_FAT, SIZE_SECTORS_PER_FAT);// sector per FAT
+    uint32_t sb = convertBytesToInt(boot_sector.reserved_sectors, SIZE_RESERVED_SECTORS); // first sector of FAT1
+    uint32_t nf = uint32_t(boot_sector.numbers_of_FAT); // numbers of FAT table
+    uint32_t sf = convertBytesToInt(boot_sector.sectors_per_FAT, SIZE_SECTORS_PER_FAT);// sector per FAT
     uint32_t first_RDET = sb + nf * sf; // 32768 first sector of RDET
-    uint32_t sc = (int)bootSector.sectors_per_cluster;
-    uint32_t first_cluster_RDET = convertBytesToInt(bootSector.root_cluster, SIZE_ROOT_CLUSTER);
+    uint32_t sc = (int)boot_sector.sectors_per_cluster;
+    uint32_t first_cluster_RDET = convertBytesToInt(boot_sector.root_cluster, SIZE_ROOT_CLUSTER);
 
     uint32_t sector0 = first_RDET - first_cluster_RDET * sc; // sector cua cluster 0 tinh theo cluster bat dau RDET
 
 
 
     /* ------------------------READ ROOT FOLDER -------------------------------------------------------------*/ 
-
-    wcout << L"------------------------------------------------" << endl;
+    wcout << L"\n------------------------------------------------" << endl;
     wcout << L"ĐỌC CÂY THƯ MỤC GỐC" << endl << endl;
 
-    
-    /* ------------------READ FAT1 ------------------------------------*/ 
-    vector<BYTE*> fat1;
-    while (true) {
-        readSector(disk_path, sb * 512, sector);
-        int i = 0;
-        while (i < 509)  {
-            BYTE* fat_member = new BYTE[4];
-            memcpy(fat_member, sector + i, 4);
-            if (convertBytesToInt(fat_member, 4) == 0) {
-                delete[] fat_member;
-                break;
-            }
-            fat1.push_back(fat_member);
-            i += 4;
-        }
-        if (i < 508) {
-            break;
-        }
-        sb++;
-    }
-    
     /* ----------------READ AND PRINT INFO FOLDER --------------------------*/
-    readAndPrintFolderInfo(disk_path, fat1, sector0, sc, first_cluster_RDET, 0);
+    readAndPrintFolderTree(disk_path, sector0, sc, first_cluster_RDET, sb, sf, 0);
     
-    for (auto bytes : fat1) {
-        delete[] bytes;
-    }
+    // for (auto bytes : fat1) {
+    //     delete[] bytes;
+    // }
     return 0;
 }
 
